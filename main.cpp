@@ -49,23 +49,25 @@ class Paddle {
     float height;
     int   speed;
 
-    Paddle(float posX, float posY, float w, float h, int spd) {
-        x = posX;
-        y = posY;
-        width = w;
-        height = h;
-        speed = spd;
-    }
+    // Paddle(float posX, float posY, float w, float h, int spd) {
+    //     x = posX;
+    //     y = posY;
+    //     width = w;
+    //     height = h;
+    //     speed = spd;
+    // }
 
     void Draw() {
         DrawRectangle(x, y, width, height, RAYWHITE);
     }
+
+    void UpdatePlayerPaddle() {
+        if(IsKeyDown(KEY_W)) y -= speed;
+        if(IsKeyDown(KEY_S)) y += speed;
+    }
 };
 
-// Ball ball;
-
-
-
+Paddle playerPaddle;
 
 int main() {
 
@@ -76,20 +78,28 @@ int main() {
     SetTargetFPS(60);
 
     Ball ball = Ball(screenWidth / 2, screenHeight / 2, 7, 7, 20);
-    Paddle leftPaddle = Paddle(10, screenHeight/2 - 60, 25, 120, 0);
-    Paddle rightPaddle = Paddle(screenWidth-35, screenHeight/2 - 60, 25, 120, 0);
+
+    playerPaddle.width = 25;
+    playerPaddle.height = 120;
+    playerPaddle.x = screenWidth - playerPaddle.width - 10;
+    playerPaddle.y = screenHeight / 2 - playerPaddle.height / 2;
+    playerPaddle.speed = 6;
+    // Paddle leftPaddle = Paddle(10, screenHeight/2 - 60, 25, 120, 6);
+    // Paddle rightPaddle = Paddle(screenWidth-);
 
     while(WindowShouldClose() == false) {
         BeginDrawing();
 
         // Updating the ball's pos after moving
         ball.Update();
+        playerPaddle.UpdatePlayerPaddle();
 
         // Drawing the Game
-        ClearBackground(BLACK);  // Clear the screen with a background color
+        ClearBackground(BLACK); // Clear the screen with a background color
         ball.Draw();
-        leftPaddle.Draw();
-        rightPaddle.Draw();
+        playerPaddle.Draw();
+        // leftPaddle.Draw();
+        // rightPaddle.Draw();
         DrawLine(screenWidth/2, 0, screenWidth/2, screenHeight, RAYWHITE);
 
 
