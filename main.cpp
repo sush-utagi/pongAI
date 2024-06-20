@@ -47,27 +47,39 @@ class Paddle {
     float y;
     float width;
     float height;
-    int   speed;
+    int speed;
 
-    // Paddle(float posX, float posY, float w, float h, int spd) {
-    //     x = posX;
-    //     y = posY;
-    //     width = w;
-    //     height = h;
-    //     speed = spd;
-    // }
+    Paddle(float posX, float posY, float w, float h, int spd)
+        : x(posX), y(posY), width(w), height(h), speed(spd) {}
 
     void Draw() {
         DrawRectangle(x, y, width, height, RAYWHITE);
     }
+};
+
+class PlayerPaddle : public Paddle {
+    public:
+    PlayerPaddle(float posX, float posY, float w, float h, int spd)
+        : Paddle(posX, posY, w, h, spd) {}
 
     void UpdatePlayerPaddle() {
-        if(IsKeyDown(KEY_W)) y -= speed;
-        if(IsKeyDown(KEY_S)) y += speed;
+        if (IsKeyDown(KEY_UP)) y -= speed;
+        if (IsKeyDown(KEY_DOWN)) y += speed;
+        if (y <= 0) y = 0;
+        if (y + height >= GetScreenHeight()) y = GetScreenHeight() - height;
     }
 };
 
-Paddle playerPaddle;
+class MachinePaddle : public Paddle {
+    public:
+    MachinePaddle(float posX, float posY, float w, float h, int spd)
+        : Paddle(posX, posY, w, h, spd) {}
+
+    void UpdateMachinePaddle() {
+        cout << "Machine Paddle << MOVING >>" << endl;
+    }
+};
+
 
 int main() {
 
@@ -77,32 +89,27 @@ int main() {
     InitWindow(screenWidth, screenHeight, "PONG");
     SetTargetFPS(60);
 
+    // needs improvement to avoid tedious math
     Ball ball = Ball(screenWidth / 2, screenHeight / 2, 7, 7, 20);
+    PlayerPaddle myPaddle = PlayerPaddle(screenWidth - 35, screenHeight / 2 - 60, 25, 120, 6);
+    MachinePaddle aipaddle = MachinePaddle(10, screenHeight/2 - 60, 25, 120, 6);
 
-    playerPaddle.width = 25;
-    playerPaddle.height = 120;
-    playerPaddle.x = screenWidth - playerPaddle.width - 10;
-    playerPaddle.y = screenHeight / 2 - playerPaddle.height / 2;
-    playerPaddle.speed = 6;
-    // Paddle leftPaddle = Paddle(10, screenHeight/2 - 60, 25, 120, 6);
-    // Paddle rightPaddle = Paddle(screenWidth-);
-
-    while(WindowShouldClose() == false) {
+    while(!WindowShouldClose()) {
         BeginDrawing();
 
         // Updating the ball's pos after moving
         ball.Update();
-        playerPaddle.UpdatePlayerPaddle();
+        myPaddle.UpdatePlayerPaddle();
+        aipaddle.UpdateMachinePaddle();
 
         // Drawing the Game
         ClearBackground(BLACK); // Clear the screen with a background color
         ball.Draw();
-        playerPaddle.Draw();
-        // leftPaddle.Draw();
-        // rightPaddle.Draw();
+        myPaddle.Draw();
+        aipaddle.Draw();
+
+        // Drawing the middle line of game
         DrawLine(screenWidth/2, 0, screenWidth/2, screenHeight, RAYWHITE);
-
-
         EndDrawing();
     } 
 
