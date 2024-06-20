@@ -6,6 +6,9 @@ using namespace std;
 
 // Compile: g++ -std=c++20 -o pong main.cpp -lraylib
 
+int PLAYER_SCORE  = 0;
+int MACHINE_SCORE = 0;
+
 class Ball {
     public:
     float x;
@@ -42,6 +45,12 @@ class Ball {
 
 
 class Paddle {
+    protected:
+    void limitPaddleMovement() {
+        if (y <= 0) y = 0;
+        if (y + height >= GetScreenHeight()) y = GetScreenHeight() - height;
+    }
+
     public:
     float x;
     float y;
@@ -65,8 +74,7 @@ class PlayerPaddle : public Paddle {
     void UpdatePlayerPaddle() {
         if (IsKeyDown(KEY_UP)) y -= speed;
         if (IsKeyDown(KEY_DOWN)) y += speed;
-        if (y <= 0) y = 0;
-        if (y + height >= GetScreenHeight()) y = GetScreenHeight() - height;
+        limitPaddleMovement();
     }
 };
 
@@ -75,10 +83,35 @@ class MachinePaddle : public Paddle {
     MachinePaddle(float posX, float posY, float w, float h, int spd)
         : Paddle(posX, posY, w, h, spd) {}
 
-    void UpdateMachinePaddle() {
-        cout << "Machine Paddle << MOVING >>" << endl;
+    void UpdateMachinePaddle(int ballY) {
+        if (y + height/2 < ballY) y += speed;
+        if (y + height/2 > ballY) y -= speed;
+        limitPaddleMovement();
     }
 };
+
+
+class Scoreboard {
+    public:
+    void Draw() {
+        DrawText(to_string(PLAYER_SCORE).c_str(), GetScreenWidth()/2 + 20, 20, 20, RAYWHITE);
+        DrawText(to_string(MACHINE_SCORE).c_str(), GetScreenWidth()/2 - 40, 20, 20, RAYWHITE);
+    }
+
+    void Update() {
+        if (PLAYER_SCORE == 5) {
+            DrawText("PLAYER WINS", GetScreenWidth()/2 - 100, GetScreenHeight()/2, 20, RAYWHITE);
+            PLAYER_SCORE = 0;
+            MACHINE_SCORE = 0;
+        }
+        if (MACHINE_SCORE == 5) {
+            DrawText("MACHINE WINS", GetScreenWidth()/2 - 100, GetScreenHeight()/2, 20, RAYWHITE);
+            PLAYER_SCORE = 0;
+            MACHINE_SCORE = 0;
+        }
+    }
+};
+
 
 
 int main() {
@@ -89,28 +122,41 @@ int main() {
     InitWindow(screenWidth, screenHeight, "PONG");
     SetTargetFPS(60);
 
-    // needs improvement to avoid tedious math
+    // needs improvement to avoid tedious math, but this is where the game objects are initialised
     Ball ball = Ball(screenWidth / 2, screenHeight / 2, 7, 7, 20);
     PlayerPaddle myPaddle = PlayerPaddle(screenWidth - 35, screenHeight / 2 - 60, 25, 120, 6);
     MachinePaddle aipaddle = MachinePaddle(10, screenHeight/2 - 60, 25, 120, 6);
+    Scoreboard sc = Scoreboard();
 
     while(!WindowShouldClose()) {
-        BeginDrawing();
-
-        // Updating the ball's pos after moving
-        ball.Update();
-        myPaddle.UpdatePlayerPaddle();
-        aipaddle.UpdateMachinePaddle();
 
         // Drawing the Game
+        BeginDrawing();
         ClearBackground(BLACK); // Clear the screen with a background color
         ball.Draw();
         myPaddle.Draw();
         aipaddle.Draw();
-
-        // Drawing the middle line of game
-        DrawLine(screenWidth/2, 0, screenWidth/2, screenHeight, RAYWHITE);
+        DrawLine(screenWidth/2, 0, screenWidth/2, screenHeight, RAYWHITE); // middle line
+        sc.Draw();
         EndDrawing();
+
+        // Updating the ball's pos after moving
+        ball.Update();
+        myPaddle.UpdatePlayerPaddle();
+        aipaddle.UpdateMachinePaddle(ball.y);
+        sc.Update();
+    
+
+        // Check for collisions ball -> paddle
+        if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{myPaddle.x, myPaddle.y, myPaddle.width, myPaddle.height})) {
+            ball.speedX *= -1;
+            PLAYER_SCORE++;
+        }
+        if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{aipaddle.x, aipaddle.y, aipaddle.width, aipaddle.height})) {
+            ball.speedX *= -1;
+            MACHINE_SCORE++;
+        }
+
     } 
 
     CloseWindow();
