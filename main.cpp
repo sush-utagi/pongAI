@@ -89,7 +89,7 @@ class MachinePaddle : public Paddle {
         limitPaddleMovement();
     }
 };
-
+ 
 
 class Scoreboard {
     public:
